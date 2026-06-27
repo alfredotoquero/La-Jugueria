@@ -13,16 +13,16 @@ $corte = mysql_fetch_assoc(mysql_query("select * from tcortes order by idcorte d
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Jugos Sonora</title>
 
-<link href="css/style.css" rel="stylesheet" type="text/css" />
+<link href="assets/css/style.css" rel="stylesheet" type="text/css" />
 
-<script language="javascript" type="text/javascript" src="js/jquery.js"></script>
+<script language="javascript" type="text/javascript" src="assets/js/jquery.js"></script>
 
-<script type="text/javascript" src="js/fancybox/jquery.mousewheel-3.0.4.pack.js"></script>
-<script type="text/javascript" src="js/fancybox/jquery.fancybox-1.3.4.js"></script>
-<link rel="stylesheet" type="text/css" href="js/fancybox/jquery.fancybox-1.3.4.css" media="screen" />
+<script type="text/javascript" src="assets/js/fancybox/jquery.mousewheel-3.0.4.pack.js"></script>
+<script type="text/javascript" src="assets/js/fancybox/jquery.fancybox-1.3.4.js"></script>
+<link rel="stylesheet" type="text/css" href="assets/js/fancybox/jquery.fancybox-1.3.4.css" media="screen" />
 
-<link href="css/blitzer/jquery-ui-1.10.3.custom.min.css" rel="stylesheet" type="text/css" />
-<script language="javascript" type="text/javascript" src="js/jquery-ui-1.10.3.custom.min.js"></script>
+<link href="assets/css/blitzer/jquery-ui-1.10.3.custom.min.css" rel="stylesheet" type="text/css" />
+<script language="javascript" type="text/javascript" src="assets/js/jquery-ui-1.10.3.custom.min.js"></script>
 
 <script>
 var total = 0;
@@ -169,7 +169,7 @@ function fancy(ancho,alto,url){
 	<tr>
     	<td align="center">
         	<div style="position:relative; width:1000px; height:720px;">
-            	<div style="position:absolute; top:0px; left:0px; width:1000px; height:720px;"><img src="images/caja.png" width="1000" height="720" border="0" usemap="#mapaCaja" /></div>
+            	<div style="position:absolute; top:0px; left:0px; width:1000px; height:720px;"><img src="assets/images/caja.png" width="1000" height="720" border="0" usemap="#mapaCaja" /></div>
                 <div style="position:absolute; top:135px; left:30px; width:941px; height:30px;">
                 <input name="txtBusqueda" id="txtBusqueda" style="border:0px; outline:0px; background:none; width:100%; height:100%;">
                 </div>

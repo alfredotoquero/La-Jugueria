@@ -34,7 +34,7 @@ include("../002wf3f3kgdvr/983y4rhou.php");
             <td><? echo mysql_result(mysql_query("select nombre from tproductos where idproducto = '".$producto["idproducto"]."'"),0); ?></td>
             <td align="left">$<? echo number_format($precio,2);?></td>
             <td align="left">$<? echo number_format($subtotal,2);?></td>
-            <td align="center"><a href="javascript:;" onclick="agregarProducto('<? echo $producto["idtmp"];?>');"><img src="images/iconoMas.png" /></a> <a href="javascript:;" onclick="eliminarProducto('<? echo $producto["idtmp"];?>');"><img src="images/iconoMenos.png" /></a></td>
+            <td align="center"><a href="javascript:;" onclick="agregarProducto('<? echo $producto["idtmp"];?>');"><img src="assets/images/iconoMas.png" /></a> <a href="javascript:;" onclick="eliminarProducto('<? echo $producto["idtmp"];?>');"><img src="assets/images/iconoMenos.png" /></a></td>
         </tr>
     	<?
     }
