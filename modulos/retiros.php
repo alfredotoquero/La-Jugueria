@@ -158,7 +158,7 @@ if($_POST['enviar']==1){
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Menu</title>
-<script src="../js/jquery.js"></script>
+<script src="../assets/js/jquery.js"></script>
 <script>
 
 function manejarEventos(evento){
@@ -215,7 +215,7 @@ body{
 <form id="formRetiroEfectivo" name="formRetiroEfectivo" method="post" action="">
 <input type="hidden" name="enviar" value="1" />
 <div style="position:relative;" id="div">
-  <div style="position:absolute; width:300px; height:360px; top:0px; left:0px; z-index:1;"><img src="../images/pantallaRetiroEfectivo.png" width="300" height="360" usemap="#Map" border="0" />
+  <div style="position:absolute; width:300px; height:360px; top:0px; left:0px; z-index:1;"><img src="../assets/images/pantallaRetiroEfectivo.png" width="300" height="360" usemap="#Map" border="0" />
     <map name="Map" id="Map">
       <area shape="rect" coords="14,300,286,342" href="javascript:;" onclick="enviarForm();"  />
     </map>

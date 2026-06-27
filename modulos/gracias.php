@@ -188,7 +188,7 @@ if($_GET["imprimir"]==1){
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Gracias</title>
-<script src="../js/jquery.js"></script>
+<script src="../assets/js/jquery.js"></script>
 <script>
 
 function manejarEventos(evento){
@@ -214,7 +214,7 @@ body{
 <div style="position:relative;">
 	<div style="height:0px; width:0px;"><input type="text" id="txtFocus" name="txtFocus" /></div>
 	<div style="position:absolute; width:500px; height:250px; top:0px; left:0px;">
-    <img src="../images/pantallaGracias.png" width="500" height="250" usemap="#Map" border="0" />
+    <img src="../assets/images/pantallaGracias.png" width="500" height="250" usemap="#Map" border="0" />
     </div>
     <div style="position:absolute; width:500px; height:56px; top:104px; left:0px;">
     	<table width="500" border="0" cellspacing="0" cellpadding="0">

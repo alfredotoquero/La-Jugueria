@@ -195,8 +195,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Menu</title>
-<link href="../css/style.css" rel="stylesheet" type="text/css" />
-<script src="../js/jquery.js"></script>
+<link href="../assets/css/style.css" rel="stylesheet" type="text/css" />
+<script src="../assets/js/jquery.js"></script>
 <script>
 var total = <? echo $total;?>;
 $(document).ready(function(){
@@ -254,7 +254,7 @@ $_SESSION["authToken"]=sha1(uniqid(microtime(), true));
 <input type="hidden" name="subtotal" id="subtotal" value="" />
 <input type="hidden" name="m3849ux3289n" value="<? echo $_SESSION["authToken"];?>" />
 <div style="position:relative;">
-	<div style="position:absolute; width:300px; height:238px; top:0px; left:0px;"><img src="../images/pantallaCobro.png" width="300" height="238" usemap="#Map" border="0" />
+	<div style="position:absolute; width:300px; height:238px; top:0px; left:0px;"><img src="../assets/images/pantallaCobro.png" width="300" height="238" usemap="#Map" border="0" />
       <map name="Map" id="Map">
         <area shape="rect" coords="14,379,286,55" href="javascript:;" onClick="mostrarSubtotales();" />
       </map>

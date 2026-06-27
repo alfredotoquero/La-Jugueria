@@ -194,7 +194,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Menu</title>
-<script src="../js/jquery.js"></script>
+<script src="../assets/js/jquery.js"></script>
 <style>
 body{
 	margin:0px;
@@ -204,7 +204,7 @@ body{
 
 <body>
 <div style="position:relative;">
-	<div style="position:absolute; width:300px; height:250px; top:0px; left:0px;"><img src="../images/pantallaCorte.png" width="300" height="250" usemap="#Map" border="0" />
+	<div style="position:absolute; width:300px; height:250px; top:0px; left:0px;"><img src="../assets/images/pantallaCorte.png" width="300" height="250" usemap="#Map" border="0" />
       <map name="Map" id="Map">
         <area shape="rect" coords="15,189,286,230" href="corte.php?idcorte=<? echo $idcorte; ?>" />
       </map>
