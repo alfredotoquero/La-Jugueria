@@ -1,0 +1,123 @@
+body{
+	margin:0px;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:14px;
+}
+
+#divLogin{
+	background-image:url(../images/bgLogin.png);
+	width:314px;
+	height:374px;
+    position:absolute;
+    top:50%;
+    left: 50%;
+    margin-top: -187px;
+    margin-left: -157px;
+}
+
+#divCampoLogin{
+	background-image:url(../images/txtLogin.png);
+	width:264px;
+	height:40px;
+}
+
+.txtLogin{
+	width:244px; 
+	height:30px;
+	font-size-adjust:inherit;
+	font-size:16px; 
+	padding:0px; 
+	margin-top:5px; 
+	margin-left:0px; 
+	border-collapse:collapse; 
+	vertical-align:middle;
+	border:0px; 
+	marker-offset:0px; 
+	outline:none;
+}
+
+#divAdmin{
+	width:1200px;
+	height:766px;
+    position:absolute;
+    top:50%;
+    left: 50%;
+    margin-top: -383px;
+    margin-left: -600px;
+}
+
+#divBtnMenu{
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:14px;
+	color:#FFF;
+	vertical-align:middle;
+	line-height:45px;
+	font-weight:bold;
+	cursor:pointer;
+	background-image:url(../images/bgBoton.jpg);
+	width:170px;
+	height:48px;
+}
+
+.linkMenu{
+	color:#FFF;
+	text-decoration:none;
+}
+
+#divBtnMenuOpcion{
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:14px;
+	text-align:center;
+	color:#FFF;
+	vertical-align:middle;
+	line-height:50px;
+	font-weight:bold;
+	cursor:pointer;
+	background-image:url(../images/bgBotonOpcion.jpg);
+	width:158px;
+	height:43px;
+}
+
+.titSeccion{
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:18px;
+	color:#000;
+	font-weight:bold;
+}
+.titTabla{
+	background-color:#AA2327;
+	color:#000;
+	font-weight:bold;
+}
+
+.titModelo{
+	color:#791976;
+	font-weight:bold;
+	font-size:22px;
+}
+
+/*.ui-autocomplete {
+  padding: 0;
+  font-family:Arial, Helvetica, sans-serif;
+  font-size:12px;
+  list-style: none;
+  background-color: #fff;
+  width: 218px;
+  border: 1px solid #B0BECA;
+  max-height: 100px;
+  overflow-y: scroll;
+}
+.ui-autocomplete .ui-menu-item a {
+  border-top: 1px solid #B0BECA;
+  display: block;
+  padding: 4px 6px;
+  color:#000;
+  cursor: pointer;
+}
+.ui-autocomplete .ui-menu-item:first-child a {
+  border-top: none;
+}
+.ui-autocomplete .ui-menu-item a.ui-state-hover {
+  background-color:#C61300;
+  color:#FFF;
+}*/
