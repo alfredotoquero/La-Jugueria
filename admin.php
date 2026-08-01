@@ -1,7 +1,8 @@
 <?php
 include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/validarAcceso.php");
 include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/con.php");
-$corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where idsucursal = '" . $_SESSION["idsucx9284hqmzt7"] . "' order by idcorte desc limit 1"));
+$idsucursal = $_SESSION["idsucx9284hqmzt7"];
+$corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where idsucursal = '" . $idsucursal . "' order by idcorte desc limit 1"));
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -33,7 +34,12 @@ $(document).ready(function(){
 	
 	var productos = [
 		<?
-		$productos = mysqli_query($con, "select * from tproductos order by nombre");
+		$productos = mysqli_query($con, "select tp.idproducto, tp.nombre, coalesce(tps.precio, tp.precio) as precio
+				from tproductos tp
+				left join tproductosucursales tps on tps.idproducto = tp.idproducto and tps.idsucursal = '" . $idsucursal . "'
+				where tp.status = 1
+				and (tps.idproductosucursal is null or tps.status = 1)
+				order by tp.nombre");
 		while($producto = mysqli_fetch_assoc($productos)){
 		?>
 		{
