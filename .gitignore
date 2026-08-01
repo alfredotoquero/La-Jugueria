@@ -2,3 +2,6 @@ assets/php/otros/con.php
 
 # Ignorar carpeta config local
 /config/
+
+# htaccess
+.htaccess

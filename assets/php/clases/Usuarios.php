@@ -12,6 +12,37 @@ class Usuarios
     }
 
     /**
+     * Resolver el idsucursal a partir del slug (nombre en minúsculas y sin espacios) recibido en la URL.
+     *
+     * @access private
+     * @param string $slug
+     * @return int|null
+     */
+    private function resolverSucursal($slug)
+    {
+        $query = "
+        select
+            idsucursal,
+            nombre
+        from
+            tsucursales
+        where
+            status = 1
+        ";
+
+        $resultado = mysqli_query($this->con, $query);
+
+        while ($sucursal = mysqli_fetch_assoc($resultado)) {
+            $normalizado = strtolower(str_replace(" ", "", $sucursal["nombre"]));
+            if ($normalizado === $slug) {
+                return $sucursal["idsucursal"];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Iniciar Sesión.
      *
      * @access public
@@ -20,6 +51,13 @@ class Usuarios
      */
     public function iniciarSesion($post)
     {
+        $slugSucursal = isset($post["sucursal"]) ? strtolower(trim($post["sucursal"])) : "";
+        $idsucursal   = $this->resolverSucursal($slugSucursal);
+
+        if (!$idsucursal) {
+            return array("success" => false, "message" => "Usuario o contraseña incorrectos.");
+        }
+
         $usuario  = mysqli_real_escape_string($this->con, $post["txtUsuario"]);
         $password = mysqli_real_escape_string($this->con, $post["txtPassword"]);
 
@@ -32,6 +70,7 @@ class Usuarios
             where
                 usuario = '" . $usuario . "'
                 and password = AES_ENCRYPT('" . $password . "', '" . SEED_CAJEROS . "')
+                and idsucursal = '" . $idsucursal . "'
                 and status = 'A'
             limit 1
             ";
@@ -47,7 +86,8 @@ class Usuarios
                 from
                     tcortes
                 where
-                    status = 0
+                    idsucursal = '" . $idsucursal . "'
+                    and status = 0
                 limit 1
                 ";
 
@@ -59,14 +99,14 @@ class Usuarios
 
                     $query = "
                     insert into
-                        tcortes (idcorte, idusuario, fechainicio, horainicio, fondoinicial)
+                        tcortes (idcorte, idsucursal, idusuario, fechainicio, horainicio, fondoinicial)
                     values
-                        (null, '" . $idusuario . "', '" . $fecha . "', '" . $hora . "', '" . $this->fondoInicial . "')
+                        (null, '" . $idsucursal . "', '" . $idusuario . "', '" . $fecha . "', '" . $hora . "', '" . $this->fondoInicial . "')
                     ";
 
                     mysqli_query($this->con, $query);
 
-                    $respuesta = array("success" => true, "tipo" => "href", "idusuario" => $idusuario);
+                    $respuesta = array("success" => true, "tipo" => "href", "idusuario" => $idusuario, "idsucursal" => $idsucursal);
                 } else {
                     $query = "
                     select
@@ -74,7 +114,8 @@ class Usuarios
                     from
                         tcortes
                     where
-                        idusuario = '" . $idusuario . "'
+                        idsucursal = '" . $idsucursal . "'
+                        and idusuario = '" . $idusuario . "'
                         and status = 0
                     limit 1
                     ";
@@ -82,7 +123,7 @@ class Usuarios
                     $validaCajero = mysqli_num_rows(mysqli_query($this->con, $query));
 
                     if ($validaCajero == 1) {
-                        $respuesta = array("success" => true, "tipo" => "href", "idusuario" => $idusuario);
+                        $respuesta = array("success" => true, "tipo" => "href", "idusuario" => $idusuario, "idsucursal" => $idsucursal);
                     } else {
                         $respuesta = array("success" => false, "message" => "Existe un corte iniciado por otro cajero.");
                     }

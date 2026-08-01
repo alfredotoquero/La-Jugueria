@@ -5,6 +5,9 @@ if(isset($_SESSION["idusrx3209exum0q3em"])){
     header("location: admin.php");
 }
 
+$sucursal = isset($_GET["sucursal"]) ? strtolower($_GET["sucursal"]) : "";
+$sucursalValida = preg_match("/^[a-z0-9-]+$/", $sucursal) === 1;
+
 unset($_SESSION["authToken"]);
 $_SESSION["authToken"] = sha1(uniqid(microtime(), true));
 ?>
@@ -18,12 +21,14 @@ $_SESSION["authToken"] = sha1(uniqid(microtime(), true));
 </head>
 
 <body>
+<?php if ($sucursalValida): ?>
 <div id="divLogin">
   <form id="formLogin" name="formLogin">
     <input type="hidden" id="controlador" name="controlador" value="usuarios" />
     <input type="hidden" name="accion" value="login" />
     <input type="hidden" id="href" name="href" value="admin.php" />
     <input type="hidden" name="authToken" value="<?php echo $_SESSION["authToken"]; ?>" />
+    <input type="hidden" name="sucursal" value="<?php echo htmlspecialchars($sucursal); ?>" />
     <table width="314" border="0" cellspacing="0" cellpadding="0">
       <tr>
         <td height="190">&nbsp;</td>
@@ -61,6 +66,13 @@ $_SESSION["authToken"] = sha1(uniqid(microtime(), true));
     </table>
   </form>
 </div>
+<?php else: ?>
+<div id="divLogin">
+  <p style="color:#fff; text-align:center; padding-top:170px; font-family:Arial, Helvetica, sans-serif;">
+    Ingresa al sistema utilizando la URL de tu sucursal.
+  </p>
+</div>
+<?php endif; ?>
 
 <script src="/assets/js/jquery.js"></script>
 <script src="/assets/js/sweetalert2.min.js"></script>
