@@ -7,7 +7,7 @@
 		$total = $_POST["total"];
 		$efectivo = $_POST["txtEfectivo"];
 
-		$corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where status = 0 order by idcorte desc limit 1"));
+		$corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where status = 0 and idsucursal = '" . $_SESSION["idsucx9284hqmzt7"] . "' order by idcorte desc limit 1"));
 
 		mysqli_query($con, "insert into tcuentas values(null,'".$corte["idcorte"]."','".$total."','".($efectivo-$total)."','".date("Y-m-d")."','".date("H:i:s")."')");
 		$idcuenta = mysqli_insert_id($con);

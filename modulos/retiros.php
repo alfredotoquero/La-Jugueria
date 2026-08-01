@@ -5,7 +5,7 @@ include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/con.php");
 if($_POST['enviar']==1){
 	$monto = $_POST['txtMonto'];
 	$descripcion = strtoupper($_POST['txtDescripcion']);
-	$idcorte = mysqli_fetch_row(mysqli_query($con, "select MAX(idcorte) from tcortes where status = 0"))[0];
+	$idcorte = mysqli_fetch_row(mysqli_query($con, "select MAX(idcorte) from tcortes where status = 0 and idsucursal = '" . $_SESSION["idsucx9284hqmzt7"] . "'"))[0];
 	$fecha = date('Y-m-d');
 	$hora = date('H:i:s');
 	mysqli_query($con, "insert into tretiros values(NULL,'$idcorte','$monto','$descripcion','$fecha','$hora')");

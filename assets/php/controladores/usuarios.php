@@ -13,6 +13,7 @@ try {
                 $respuesta = $claseUsuarios->iniciarSesion($_POST);
                 if ($respuesta["success"]) {
                     $_SESSION["idusrx3209exum0q3em"] = $respuesta["idusuario"];
+                    $_SESSION["idsucx9284hqmzt7"] = $respuesta["idsucursal"];
                     $_SESSION["456udhsere"] = date("Y-n-j H:i:s");
                     unset($_SESSION["authToken"]);
                 }

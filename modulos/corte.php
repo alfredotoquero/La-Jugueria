@@ -3,7 +3,7 @@
 	include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/con.php");
 	include("num2letras.php");
 
-	$idcorte = mysqli_fetch_row(mysqli_query($con, "select max(idcorte) from tcortes where status = 0"))[0];
+	$idcorte = mysqli_fetch_row(mysqli_query($con, "select max(idcorte) from tcortes where status = 0 and idsucursal = '" . $_SESSION["idsucx9284hqmzt7"] . "'"))[0];
 	$fondo = mysqli_fetch_row(mysqli_query($con, "select fondoinicial from tcortes where idcorte = $idcorte"))[0];
 	$ventas = mysqli_fetch_row(mysqli_query($con, "select sum(total) from tcuentas where idcorte = $idcorte"))[0];
 	$retiros = mysqli_fetch_row(mysqli_query($con, "select sum(monto) from tretiros where idcorte = $idcorte"))[0];

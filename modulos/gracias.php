@@ -4,7 +4,7 @@ include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/con.php");
 if($_GET["imprimir"]==1){
 	include("num2letras.php");
 
-	$corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where status = 0 order by idcorte desc limit 1"));
+	$corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where status = 0 and idsucursal = '" . $_SESSION["idsucx9284hqmzt7"] . "' order by idcorte desc limit 1"));
 
 	$idcuenta = $_GET["idcuenta"];
 	$cuenta = mysqli_fetch_assoc(mysqli_query($con, "select * from tcuentas where idcuenta = '$idcuenta'"));
