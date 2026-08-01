@@ -1,22 +1,18 @@
-<?
-	ini_set("session.gc_maxlifetime","43200");
-	session_name("2q093ex8uq2ewun");
-	session_start();
-	date_default_timezone_set('America/Los_Angeles');
-	include("../002wf3f3kgdvr/983y4rhouCon.php");
-	include("../002wf3f3kgdvr/983y4rhou.php");
+<?php
+	include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/validarAcceso.php");
+	include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/con.php");
 	if($_POST["enviar"]==1 && $_POST["m3849ux3289n"]==$_SESSION["authToken"]){
 		unset($_SESSION["authToken"]);
 		include("num2letras.php");
 		$total = $_POST["total"];
 		$efectivo = $_POST["txtEfectivo"];
 
-		$corte = mysql_fetch_assoc(mysql_query("select * from tcortes where status = 0 order by idcorte desc limit 1"));
+		$corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where status = 0 order by idcorte desc limit 1"));
 
-		mysql_query("insert into tcuentas values(null,'".$corte["idcorte"]."','".$total."','".($efectivo-$total)."','".date("Y-m-d")."','".date("H:i:s")."')");
-		$idcuenta = mysql_insert_id();
+		mysqli_query($con, "insert into tcuentas values(null,'".$corte["idcorte"]."','".$total."','".($efectivo-$total)."','".date("Y-m-d")."','".date("H:i:s")."')");
+		$idcuenta = mysqli_insert_id($con);
 
-		$infoticket = mysql_fetch_assoc(mysql_query("select * from tinfoticket where id = '1'"));
+		$infoticket = mysqli_fetch_assoc(mysqli_query($con, "select * from tinfoticket where id = '1'"));
 
 		function countCaracteres($string){
 			$caracteres = "., ";
@@ -109,13 +105,13 @@
 		printer_select_font($enlace,$fontS);
 
 		$articulos = 0;
-		$productos = mysql_query("select * from trcuentaproductostmp order by idtmp");
-		while($producto = mysql_fetch_assoc($productos)){
-			mysql_query("update tproductos set unidades = unidades - ".$producto["cantidad"]." where idproducto = '".$producto["idproducto"]."' and servicio = 0");
+		$productos = mysqli_query($con, "select * from trcuentaproductostmp order by idtmp");
+		while($producto = mysqli_fetch_assoc($productos)){
+			mysqli_query($con, "update tproductos set unidades = unidades - ".$producto["cantidad"]." where idproducto = '".$producto["idproducto"]."' and servicio = 0");
 			$articulos += $producto["cantidad"];
 			$numLinea = 1;
 			$cantidad = $producto["cantidad"];
-			$nombre = mysql_result(mysql_query("select nombre from tproductos where idproducto = '".$producto["idproducto"]."'"),0);
+			$nombre = mysqli_fetch_row(mysqli_query($con, "select nombre from tproductos where idproducto = '".$producto["idproducto"]."'"))[0];
 			$precio = "$".number_format($producto["precio"],2);
 			$importe = "$".number_format($producto["precio"]*$producto["cantidad"],2);
 			$lineas = dividirTexto($nombre,$caracteresCol[1]);
@@ -178,8 +174,8 @@
 		printer_end_doc($enlace);
 		printer_close($enlace);
 
-		mysql_query("insert into trcuentaproductos (idcuenta,idproducto,cantidad,precio) select $idcuenta,idproducto,cantidad,precio from trcuentaproductostmp");
-		mysql_query("truncate trcuentaproductostmp");
+		mysqli_query($con, "insert into trcuentaproductos (idcuenta,idproducto,cantidad,precio) select $idcuenta,idproducto,cantidad,precio from trcuentaproductostmp");
+		mysqli_query($con, "truncate trcuentaproductostmp");
 		?>
 
 		<script>
@@ -188,7 +184,7 @@
 		</script>
     <?
 	}else{
-		$total = mysql_result(mysql_query("select sum(precio*cantidad) from trcuentaproductostmp"),0);
+		$total = mysqli_fetch_row(mysqli_query($con, "select sum(precio*cantidad) from trcuentaproductostmp"))[0];
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">

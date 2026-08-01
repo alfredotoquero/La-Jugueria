@@ -1,10 +1,6 @@
-<?
-ini_set("session.gc_maxlifetime","43200");
-session_name("2q093ex8uq2ewun");
-session_start();
-date_default_timezone_set('America/Los_Angeles');
-include("../002wf3f3kgdvr/983y4rhouCon.php");
-include("../002wf3f3kgdvr/983y4rhou.php");
+<?php
+include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/validarAcceso.php");
+include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/con.php");
 ?>
 <table width="930" border="0" cellpadding="3" cellspacing="0" align="center" style="font-size:20px;">
     <thead>
@@ -21,8 +17,8 @@ include("../002wf3f3kgdvr/983y4rhou.php");
     <?
 	$total = 0;
 	$num = 0;
-    $productos = mysql_query("select * from trcuentaproductostmp order by idtmp");
-    while($producto = mysql_fetch_assoc($productos)){
+    $productos = mysqli_query($con, "select * from trcuentaproductostmp order by idtmp");
+    while($producto = mysqli_fetch_assoc($productos)){
 		$precio = $producto["precio"];
 		$subtotal = (float)($precio*$producto["cantidad"]);
 		$total += $subtotal;
@@ -31,7 +27,7 @@ include("../002wf3f3kgdvr/983y4rhou.php");
         <tr height="30">
             <td align="center"><? echo $producto["cantidad"];?></td>
             <td></td>
-            <td><? echo mysql_result(mysql_query("select nombre from tproductos where idproducto = '".$producto["idproducto"]."'"),0); ?></td>
+            <td><? echo mysqli_fetch_row(mysqli_query($con, "select nombre from tproductos where idproducto = '".$producto["idproducto"]."'"))[0]; ?></td>
             <td align="left">$<? echo number_format($precio,2);?></td>
             <td align="left">$<? echo number_format($subtotal,2);?></td>
             <td align="center"><a href="javascript:;" onclick="agregarProducto('<? echo $producto["idtmp"];?>');"><img src="assets/images/iconoMas.png" /></a> <a href="javascript:;" onclick="eliminarProducto('<? echo $producto["idtmp"];?>');"><img src="assets/images/iconoMenos.png" /></a></td>

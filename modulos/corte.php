@@ -1,28 +1,24 @@
-<?
-	ini_set("session.gc_maxlifetime","43200");
-	session_name("2q093ex8uq2ewun");
-	session_start();
-	date_default_timezone_set('America/Los_Angeles');
-	include("../002wf3f3kgdvr/983y4rhouCon.php");
-	include("../002wf3f3kgdvr/983y4rhou.php");
+<?php
+	include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/validarAcceso.php");
+	include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/con.php");
 	include("num2letras.php");
 
-	$idcorte = mysql_result(mysql_query("select max(idcorte) from tcortes where status = 0"),0);
-	$fondo = mysql_result(mysql_query("select fondoinicial from tcortes where idcorte = $idcorte"),0);
-	$ventas = mysql_result(mysql_query("select sum(total) from tcuentas where idcorte = $idcorte"),0);
-	$retiros = mysql_result(mysql_query("select sum(monto) from tretiros where idcorte = $idcorte"),0);
+	$idcorte = mysqli_fetch_row(mysqli_query($con, "select max(idcorte) from tcortes where status = 0"))[0];
+	$fondo = mysqli_fetch_row(mysqli_query($con, "select fondoinicial from tcortes where idcorte = $idcorte"))[0];
+	$ventas = mysqli_fetch_row(mysqli_query($con, "select sum(total) from tcuentas where idcorte = $idcorte"))[0];
+	$retiros = mysqli_fetch_row(mysqli_query($con, "select sum(monto) from tretiros where idcorte = $idcorte"))[0];
 	$fondoFinal = ((float)$fondo+(float)$ventas)-(float)$retiros;
 
 	if($_GET['idcorte']){
 		$idcorte = $_GET['idcorte'];
-		$fondo = mysql_result(mysql_query("select fondoinicial from tcortes where idcorte = $idcorte"),0);
-		$ventas = mysql_result(mysql_query("select sum(total) from tcuentas where idcorte = $idcorte"),0);
-		$retiros = mysql_result(mysql_query("select sum(monto) from tretiros where idcorte = $idcorte"),0);
+		$fondo = mysqli_fetch_row(mysqli_query($con, "select fondoinicial from tcortes where idcorte = $idcorte"))[0];
+		$ventas = mysqli_fetch_row(mysqli_query($con, "select sum(total) from tcuentas where idcorte = $idcorte"))[0];
+		$retiros = mysqli_fetch_row(mysqli_query($con, "select sum(monto) from tretiros where idcorte = $idcorte"))[0];
 		$fondoFinal = ((float)$fondo+(float)$ventas)-(float)$retiros;
-		$folioinicial = mysql_result(mysql_query("select min(idcuenta) from tcuentas where idcorte = $idcorte"),0);
-		$foliofinal = mysql_result(mysql_query("select max(idcuenta) from tcuentas where idcorte = $idcorte"),0);
+		$folioinicial = mysqli_fetch_row(mysqli_query($con, "select min(idcuenta) from tcuentas where idcorte = $idcorte"))[0];
+		$foliofinal = mysqli_fetch_row(mysqli_query($con, "select max(idcuenta) from tcuentas where idcorte = $idcorte"))[0];
 
-		mysql_query("update tcortes set
+		mysqli_query($con, "update tcortes set
 					fechafinal = '".date("Y-m-d")."',
 					horafinal = '".date("H:i:s")."',
 					gastos = '$retiros',
@@ -34,8 +30,8 @@
 					where idcorte = '$idcorte'");
 
 		//impresion del ticket
-		$corte = mysql_fetch_assoc(mysql_query("select * from tcortes where idcorte = $idcorte"));
-		$infoticket = mysql_fetch_assoc(mysql_query("select * from tinfoticket where id = '1'"));
+		$corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where idcorte = $idcorte"));
+		$infoticket = mysqli_fetch_assoc(mysqli_query($con, "select * from tinfoticket where id = '1'"));
 		function countCaracteres($string){
 			$caracteres = "., ";
 			$count=0;

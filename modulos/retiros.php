@@ -1,20 +1,16 @@
-<?
-ini_set("session.gc_maxlifetime","43200");
-session_name("2q093ex8uq2ewun");
-session_start();
-date_default_timezone_set('America/Los_Angeles');
-include("../002wf3f3kgdvr/983y4rhouCon.php");
-include("../002wf3f3kgdvr/983y4rhou.php");
+<?php
+include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/validarAcceso.php");
+include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/con.php");
 
 if($_POST['enviar']==1){
 	$monto = $_POST['txtMonto'];
 	$descripcion = strtoupper($_POST['txtDescripcion']);
-	$idcorte = mysql_result(mysql_query("select MAX(idcorte) from tcortes where status = 0"),0);
+	$idcorte = mysqli_fetch_row(mysqli_query($con, "select MAX(idcorte) from tcortes where status = 0"))[0];
 	$fecha = date('Y-m-d');
 	$hora = date('H:i:s');
-	mysql_query("insert into tretiros values(NULL,'$idcorte','$monto','$descripcion','$fecha','$hora')");
-	$idretiro = mysql_insert_id();
-	$infoticket = mysql_fetch_assoc(mysql_query("select * from tinfoticket where id = '1'"));
+	mysqli_query($con, "insert into tretiros values(NULL,'$idcorte','$monto','$descripcion','$fecha','$hora')");
+	$idretiro = mysqli_insert_id($con);
+	$infoticket = mysqli_fetch_assoc(mysqli_query($con, "select * from tinfoticket where id = '1'"));
 
 			function countCaracteres($string){
 				$caracteres = "., ";

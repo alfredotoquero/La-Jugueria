@@ -1,13 +1,10 @@
-<?
-ini_set("session.gc_maxlifetime","43200");
-session_name("2q093ex8uq2ewun");
-session_start();
-include("../../002wf3f3kgdvr/983y4rhouCon.php");
-include("../../002wf3f3kgdvr/983y4rhou.php");
+<?php
+include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/validarAcceso.php");
+include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/con.php");
 $idproducto = $_POST["idproducto"];
-if(mysql_result(mysql_query("select cantidad from trcuentaproductostmp where idtmp = '$idproducto'"),0)>1){
-	mysql_query("update trcuentaproductostmp set cantidad = cantidad - 1 where idtmp = '$idproducto'");
+if(mysqli_fetch_row(mysqli_query($con, "select cantidad from trcuentaproductostmp where idtmp = '$idproducto'"))[0]>1){
+	mysqli_query($con, "update trcuentaproductostmp set cantidad = cantidad - 1 where idtmp = '$idproducto'");
 }else{
-	mysql_query("delete from trcuentaproductostmp where idtmp = '$idproducto'");
+	mysqli_query($con, "delete from trcuentaproductostmp where idtmp = '$idproducto'");
 }
 ?>
