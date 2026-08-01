@@ -6,6 +6,7 @@ class Usuarios
 
     function __construct()
     {
+        include($_SERVER["DOCUMENT_ROOT"] . "/config/environment.php");
         include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/con.php");
         $this->con = $con;
     }
@@ -30,7 +31,7 @@ class Usuarios
                 tusuarios
             where
                 usuario = '" . $usuario . "'
-                and password = '" . $password . "'
+                and password = AES_ENCRYPT('" . $password . "', '" . SEED_CAJEROS . "')
                 and status = 'A'
             limit 1
             ";
