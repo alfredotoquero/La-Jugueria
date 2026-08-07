@@ -17,7 +17,8 @@ include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/con.php");
     <?
 	$total = 0;
 	$num = 0;
-    $productos = mysqli_query($con, "select * from trcuentaproductostmp order by idtmp");
+	$idsucursal = $_SESSION["idsucx9284hqmzt7"];
+    $productos = mysqli_query($con, "select * from trcuentaproductostmp where idsucursal = '$idsucursal' order by idtmp");
     while($producto = mysqli_fetch_assoc($productos)){
 		$precio = $producto["precio"];
 		$subtotal = (float)($precio*$producto["cantidad"]);
