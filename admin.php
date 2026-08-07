@@ -20,6 +20,7 @@ $corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where idsu
 
 <link href="assets/css/blitzer/jquery-ui-1.10.3.custom.min.css" rel="stylesheet" type="text/css" />
 <script language="javascript" type="text/javascript" src="assets/js/jquery-ui-1.10.3.custom.min.js"></script>
+<script language="javascript" type="text/javascript" src="assets/js/qz-tray.js"></script>
 
 <script>
 var total = 0;
@@ -162,6 +163,40 @@ function fancy(ancho,alto,url){
 		'enableEscapeButton':	true,
 		'onClosed'			:	function(){recargarCuenta();}
 	});
+}
+
+var QZ_TRAY_DOWNLOAD_URL = 'https://qz.io/download/';
+
+function imprimirTicket(printerName, datosBase64){
+	var yaAvisado = false;
+	var conexion = qz.websocket.isActive() ? Promise.resolve() : qz.websocket.connect();
+
+	return conexion
+		.catch(function(error){
+			yaAvisado = true;
+			console.error('QZ Tray no disponible:', error);
+			if(confirm('No se detecto QZ Tray en esta computadora (o no esta abierto).\n\nSi ya lo instalaste, abrelo e intenta imprimir de nuevo.\n\nSi no esta instalado, presiona Aceptar para descargarlo.')){
+				window.open(QZ_TRAY_DOWNLOAD_URL, '_blank');
+			}
+			return Promise.reject(error);
+		})
+		.then(function(){
+			return qz.printers.find(printerName);
+		})
+		.then(function(printer){
+			var config = qz.configs.create(printer);
+			var data = [{ type: 'raw', format: 'command', flavor: 'base64', data: datosBase64 }];
+			return qz.print(config, data);
+		})
+		.catch(function(error){
+			if(!yaAvisado){
+				console.error('Error de impresion QZ Tray:', error);
+				alert('No se pudo imprimir el ticket. Revisa el nombre de la impresora configurado para esta sucursal.');
+			}
+			// No se relanza el error: la venta/corte/retiro ya quedo guardado en la base de
+			// datos antes de llegar aqui, asi que un fallo de impresion no debe bloquear que
+			// se limpie el carrito o se avance de pantalla.
+		});
 }
 </script>
 

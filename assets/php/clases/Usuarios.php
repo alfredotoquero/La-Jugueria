@@ -2,7 +2,6 @@
 class Usuarios
 {
     private $con;
-    private $fondoInicial = 1000;
 
     function __construct()
     {
@@ -12,18 +11,19 @@ class Usuarios
     }
 
     /**
-     * Resolver el idsucursal a partir del slug (nombre en minúsculas y sin espacios) recibido en la URL.
+     * Resolver la sucursal a partir del slug (nombre en minúsculas y sin espacios) recibido en la URL.
      *
      * @access private
      * @param string $slug
-     * @return int|null
+     * @return array|null Fila de tsucursales (incluye idsucursal y fondoinicial) o null si no hay match.
      */
     private function resolverSucursal($slug)
     {
         $query = "
         select
             idsucursal,
-            nombre
+            nombre,
+            fondoinicial
         from
             tsucursales
         where
@@ -35,7 +35,7 @@ class Usuarios
         while ($sucursal = mysqli_fetch_assoc($resultado)) {
             $normalizado = strtolower(str_replace(" ", "", $sucursal["nombre"]));
             if ($normalizado === $slug) {
-                return $sucursal["idsucursal"];
+                return $sucursal;
             }
         }
 
@@ -52,11 +52,13 @@ class Usuarios
     public function iniciarSesion($post)
     {
         $slugSucursal = isset($post["sucursal"]) ? strtolower(trim($post["sucursal"])) : "";
-        $idsucursal   = $this->resolverSucursal($slugSucursal);
+        $sucursal     = $this->resolverSucursal($slugSucursal);
 
-        if (!$idsucursal) {
+        if (!$sucursal) {
             return array("success" => false, "message" => "Usuario o contraseña incorrectos.");
         }
+
+        $idsucursal = $sucursal["idsucursal"];
 
         $usuario  = mysqli_real_escape_string($this->con, $post["txtUsuario"]);
         $password = mysqli_real_escape_string($this->con, $post["txtPassword"]);
@@ -101,7 +103,7 @@ class Usuarios
                     insert into
                         tcortes (idcorte, idsucursal, idusuario, fechainicio, horainicio, fondoinicial)
                     values
-                        (null, '" . $idsucursal . "', '" . $idusuario . "', '" . $fecha . "', '" . $hora . "', '" . $this->fondoInicial . "')
+                        (null, '" . $idsucursal . "', '" . $idusuario . "', '" . $fecha . "', '" . $hora . "', '" . $sucursal["fondoinicial"] . "')
                     ";
 
                     mysqli_query($this->con, $query);

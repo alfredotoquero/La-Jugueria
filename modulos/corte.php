@@ -3,7 +3,8 @@
 	include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/con.php");
 	include("num2letras.php");
 
-	$idcorte = mysqli_fetch_row(mysqli_query($con, "select max(idcorte) from tcortes where status = 0 and idsucursal = '" . $_SESSION["idsucx9284hqmzt7"] . "'"))[0];
+	$idsucursal = $_SESSION["idsucx9284hqmzt7"];
+	$idcorte = mysqli_fetch_row(mysqli_query($con, "select max(idcorte) from tcortes where status = 0 and idsucursal = '" . $idsucursal . "'"))[0];
 	$fondo = mysqli_fetch_row(mysqli_query($con, "select fondoinicial from tcortes where idcorte = $idcorte"))[0];
 	$ventas = mysqli_fetch_row(mysqli_query($con, "select sum(total) from tcuentas where idcorte = $idcorte"))[0];
 	$retiros = mysqli_fetch_row(mysqli_query($con, "select sum(monto) from tretiros where idcorte = $idcorte"))[0];
@@ -15,8 +16,8 @@
 		$ventas = mysqli_fetch_row(mysqli_query($con, "select sum(total) from tcuentas where idcorte = $idcorte"))[0];
 		$retiros = mysqli_fetch_row(mysqli_query($con, "select sum(monto) from tretiros where idcorte = $idcorte"))[0];
 		$fondoFinal = ((float)$fondo+(float)$ventas)-(float)$retiros;
-		$folioinicial = mysqli_fetch_row(mysqli_query($con, "select min(idcuenta) from tcuentas where idcorte = $idcorte"))[0];
-		$foliofinal = mysqli_fetch_row(mysqli_query($con, "select max(idcuenta) from tcuentas where idcorte = $idcorte"))[0];
+		$folioinicial = mysqli_fetch_row(mysqli_query($con, "select min(folio) from tcuentas where idcorte = $idcorte"))[0];
+		$foliofinal = mysqli_fetch_row(mysqli_query($con, "select max(folio) from tcuentas where idcorte = $idcorte"))[0];
 
 		mysqli_query($con, "update tcortes set
 					fechafinal = '".date("Y-m-d")."',
@@ -30,157 +31,71 @@
 					where idcorte = '$idcorte'");
 
 		//impresion del ticket
+		include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/escpos.php");
+
 		$corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where idcorte = $idcorte"));
-		$infoticket = mysqli_fetch_assoc(mysqli_query($con, "select * from tinfoticket where id = '1'"));
-		function countCaracteres($string){
-			$caracteres = "., ";
-			$count=0;
-			for($i=0;$i < strlen($string);$i++){
-				if (strpos($caracteres, $string[$i]) !== false) {
-						$count++;
-				}
-			}
-			return $count;
-		}
+		$infoticket = mysqli_fetch_assoc(mysqli_query($con, "select ticket_negocio as negocio, ticket_calle as calle, ticket_numero as numero, ticket_colonia as colonia, ticket_codigopostal as codigopostal, ticket_ciudad as ciudad, ticket_nombre as nombre, ticket_rfc as rfc, ticket_regimen as regimen, ticket_nombreimpresora as nombreimpresora from tsucursales where idsucursal = '$idsucursal'"));
 
-		function dividirTexto($cadena,$length){
-			$palabras = explode(" ",$cadena);
-			$texto = "";
-			$lineas = array();
-			foreach($palabras as $palabra){
-				if((strlen($texto) + strlen($palabra))<=$length){
-					$texto .= $palabra." ";
-				}else{
-					if(strlen($texto)>0){
-						$texto = substr($texto,0,-1);
-					}
-					$lineas[] = $texto;
-					$texto = $palabra." ";
-				}
-			}
-			if(strlen($texto)>0){
-				$texto = substr($texto,0,-1);
-				$lineas[] = $texto;
-			}
-			return $lineas;
-		}
-
-		$printer = "BIXOLON SRP-330II";
-		$enlace=printer_open($printer);
-
-		$margenes = 5;
-
-		printer_set_option($enlace, PRINTER_MODE, "RAW");
-		printer_set_option($enlace, PRINTER_PAPER_FORMAT, PRINTER_FORMAT_CUSTOM);
-		printer_set_option($enlace,PRINTER_PAPER_WIDTH,80);
-
-		printer_start_doc($enlace, "Ticket");
-		printer_start_page($enlace);
-
-		$fontL = printer_create_font("Arial", 24, 10, PRINTER_FW_BOLD, false, false, false, 0);
-		$fontM = printer_create_font("Arial", 21, 8, PRINTER_FW_NORMAL, false, false, false, 0);
-		$fontS = printer_create_font("Arial", 21, 8, PRINTER_FW_LIGHT, false, false, false, 0);
-
-		$caracteresCol = array(5,17,8,8,48);
-		$coordCol = array(5,90,300,400);
-		$saltoLinea = array(24,22,22,196,66);
-		$coordActual = 10;
+		$anchoTicket = 48;
 
 		$idticket = "";
 		for($i=strlen($idcorte);$i<7;$i++){
 			$idticket .= "0";
 		}
 		$idticket = $idticket.$idcorte;
-		$ticket .= date("d/m/Y",strtotime($corte["fechafinal"]))." ".date("H:i:s A",strtotime($corte["horafinal"]))." ".$idticket;
+		$ticket = date("d/m/Y",strtotime($corte["fechafinal"]))." ".date("H:i:s A",strtotime($corte["horafinal"]))." ".$idticket;
 
+		$escpos = escposInit();
+		$escpos .= escposAlign("center");
+		$escpos .= escposBold(true).escposTamano(true);
+		$escpos .= escposLinea($infoticket["negocio"]);
+		$escpos .= escposTamano(false).escposBold(false);
+		$escpos .= escposLinea($infoticket["calle"]." No. ".$infoticket["numero"]);
+		$escpos .= escposLinea($infoticket["colonia"]." C.P. ".$infoticket["codigopostal"]);
+		$escpos .= escposLinea($infoticket["ciudad"]);
+		$escpos .= escposLinea($infoticket["nombre"]);
+		$escpos .= escposLinea($infoticket["rfc"]);
+		$escpos .= escposLinea($infoticket["regimen"]);
+		$escpos .= escposLinea($ticket);
+		$escpos .= escposAlign("left");
+		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
 
-		printer_select_font($enlace, $fontL);
-		printer_draw_text($enlace,str_pad($infoticket["negocio"],((40-strlen($infoticket["negocio"]))*2)+(countCaracteres($infoticket["negocio"])*2)+strlen($infoticket["negocio"]), " ", STR_PAD_BOTH),5,$coordActual);
-		$coordActual += $saltoLinea[0];
-		printer_select_font($enlace, $fontM);
-		printer_draw_text($enlace,str_pad($infoticket["calle"]." No. ".$infoticket["numero"],((46-strlen($infoticket["calle"]." No. ".$infoticket["numero"]))*2)+(countCaracteres($infoticket["calle"]." No. ".$infoticket["numero"])*2)+strlen($infoticket["calle"]." No. ".$infoticket["numero"]), " ", STR_PAD_BOTH),5,$coordActual);
-		$coordActual += $saltoLinea[1];
-		printer_draw_text($enlace,str_pad($infoticket["colonia"]." C.P. ".$infoticket["codigopostal"],((46-strlen($infoticket["colonia"]." C.P. ".$infoticket["codigopostal"]))*2)+(countCaracteres($infoticket["colonia"]." C.P. ".$infoticket["codigopostal"])*2)+strlen($infoticket["colonia"]." C.P. ".$infoticket["codigopostal"]), " ", STR_PAD_BOTH),5,$coordActual);
-		$coordActual += $saltoLinea[1];
-		printer_draw_text($enlace,str_pad($infoticket["ciudad"],((44-strlen($infoticket["ciudad"]))*2)+(countCaracteres($infoticket["ciudad"])*2)+strlen($infoticket["ciudad"]), " ", STR_PAD_BOTH),5,$coordActual);
-		$coordActual += $saltoLinea[1];
-		printer_draw_text($enlace,str_pad($infoticket["nombre"],((44-strlen($infoticket["nombre"]))*2)+(countCaracteres($infoticket["nombre"])*2)+strlen($infoticket["nombre"]), " ", STR_PAD_BOTH),5,$coordActual);
-		$coordActual += $saltoLinea[1];
-		printer_draw_text($enlace,str_pad($infoticket["rfc"],((46-strlen($infoticket["rfc"]))*2)+(countCaracteres($infoticket["rfc"])*2)+strlen($infoticket["rfc"]), " ", STR_PAD_BOTH),5,$coordActual);
-		$coordActual += $saltoLinea[1];
-		printer_draw_text($enlace,str_pad($infoticket["regimen"],((46-strlen($infoticket["regimen"]))*2)+(countCaracteres($infoticket["regimen"])*2)+strlen($infoticket["regimen"]), " ", STR_PAD_BOTH),5,$coordActual);
-		$coordActual += $saltoLinea[1];
-		printer_draw_text($enlace,str_pad($ticket,((48-strlen($ticket))*2)+(countCaracteres($ticket)*2)+strlen($ticket), " ", STR_PAD_BOTH),5,$coordActual);
-		$coordActual += $saltoLinea[1];
-		printer_draw_text($enlace,"==============================================",5,$coordActual);
-		$coordActual += $saltoLinea[1];
+		$escpos .= escposAlign("center");
+		$escpos .= escposLinea("CORTE DE CAJA");
+		$escpos .= escposAlign("left");
+		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
 
-		printer_draw_text($enlace,str_pad("CORTE DE CAJA".$articulos,((48-strlen("CORTE DE CAJA".$articulos))*2)+(countCaracteres("CORTE DE CAJA".$articulos)*2)+strlen("CORTE DE CAJA".$articulos), " ", STR_PAD_BOTH),5,$coordActual);
-		$coordActual += $saltoLinea[2];
-
-		printer_draw_text($enlace,"==============================================",5,$coordActual);
-		$coordActual += $saltoLinea[2];
-
-		printer_draw_text($enlace,"FONDO FINAL",5,$coordActual);
-		printer_draw_text($enlace,'$'.number_format($corte['fondofinal'],2),250,$coordActual);
-		$coordActual += $saltoLinea[2];
-		printer_draw_text($enlace,"DESGLOSE:",5,$coordActual);
-		$coordActual += $saltoLinea[2];
-		printer_draw_text($enlace,"FONDO INICIAL (MXN)",5,$coordActual);
-		printer_draw_text($enlace,'$'.number_format($corte['fondoinicial'],2),250,$coordActual);
-		$coordActual += $saltoLinea[2];
+		$escpos .= escposFila(array(array("FONDO FINAL", 34, "left"), array('$'.number_format($corte['fondofinal'],2), 14, "right")));
+		$escpos .= escposLinea("DESGLOSE:");
+		$escpos .= escposFila(array(array("FONDO INICIAL (MXN)", 34, "left"), array('$'.number_format($corte['fondoinicial'],2), 14, "right")));
 		if($corte['ventas']>0){
-			printer_draw_text($enlace,"EFECTIVO (MXN)",5,$coordActual);
-			printer_draw_text($enlace,'$'.number_format($corte['ventas'],2),250,$coordActual);
-			$coordActual += $saltoLinea[2];
+			$escpos .= escposFila(array(array("EFECTIVO (MXN)", 34, "left"), array('$'.number_format($corte['ventas'],2), 14, "right")));
 		}
-		printer_draw_text($enlace,"TOTAL DE GASTOS",5,$coordActual);
-		printer_draw_text($enlace,'$'.number_format($corte['gastos'],2),250,$coordActual);
-		$coordActual += $saltoLinea[2];
-		printer_draw_text($enlace,"FOLIO INICIAL DEL CORTE",5,$coordActual);
-		printer_draw_text($enlace,$corte['folioinicial'],250,$coordActual);
-		$coordActual += $saltoLinea[2];
-		printer_draw_text($enlace,"FOLIO FINAL DEL CORTE",5,$coordActual);
-		printer_draw_text($enlace,$corte['foliofinal'],250,$coordActual);
-		$coordActual += $saltoLinea[4];
+		$escpos .= escposFila(array(array("TOTAL DE GASTOS", 34, "left"), array('$'.number_format($corte['gastos'],2), 14, "right")));
+		$escpos .= escposFila(array(array("FOLIO INICIAL DEL CORTE", 34, "left"), array($corte['folioinicial'], 14, "right")));
+		$escpos .= escposFila(array(array("FOLIO FINAL DEL CORTE", 34, "left"), array($corte['foliofinal'], 14, "right")));
 
-		$numLinea=1;
 		$descripcion = strtoupper(num2letras(number_format($corte['fondofinal'],2,'.','')));
-		$lineas = dividirTexto($descripcion,$caracteresCol[4]);
-
+		$lineas = dividirTexto($descripcion,$anchoTicket);
 		foreach($lineas as $linea){
-			printer_draw_text($enlace,$linea,$coordCol[0],$coordActual);
-			$numLinea++;
-			$coordActual += $saltoLinea[2];
+			$escpos .= escposLinea($linea);
 		}
 
-		printer_draw_text($enlace,"==============================================",5,$coordActual);
-		$coordActual += $saltoLinea[2];
-
-		printer_draw_text($enlace,str_pad("FIRMAS",((48-strlen("FIRMAS"))*2)+(countCaracteres("FIRMAS")*2)+strlen("FIRMAS"), " ", STR_PAD_BOTH),5,$coordActual);
-		$coordActual += $saltoLinea[3];
-
-		printer_draw_text($enlace,"==============================================",5,$coordActual);
-		$coordActual += $saltoLinea[2];
-
-		printer_draw_text($enlace,str_pad("CORTE DE CAJA".$articulos,((48-strlen("CORTE DE CAJA".$articulos))*2)+(countCaracteres("CORTE DE CAJA".$articulos)*2)+strlen("CORTE DE CAJA".$articulos), " ", STR_PAD_BOTH),5,$coordActual);
-		$coordActual += $saltoLinea[4];
-
-		printer_draw_text($enlace," ",5,$coordActual);
-
-		printer_write($enlace,chr(27).chr(112).chr(0).chr(100).chr(250));
-
-		printer_delete_font($fontL);
-		printer_delete_font($fontM);
-		printer_delete_font($fontS);
-		printer_end_page($enlace);
-		printer_end_doc($enlace);
-		printer_close($enlace);
+		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+		$escpos .= escposAlign("center");
+		$escpos .= escposLinea("FIRMAS");
+		$escpos .= escposAlign("left");
+		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+		$escpos .= escposAlign("center");
+		$escpos .= escposLinea("CORTE DE CAJA");
+		$escpos .= escposAbrirCajon();
 
 		?>
 		<script>
-		parent.location.href="../salir.php";
-		parent.$.fancybox.close();
+		parent.imprimirTicket(<? echo json_encode($infoticket["nombreimpresora"]);?>, '<? echo base64_encode($escpos);?>').then(function(){
+			parent.location.href="../salir.php";
+			parent.$.fancybox.close();
+		});
 		</script>
 		<?
 	}else{
