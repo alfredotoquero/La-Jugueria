@@ -177,6 +177,10 @@ var QZ_TRAY_DOWNLOAD_URL = 'https://qz.io/download/';
  * Se registra al cargar la pantalla, antes de cualquier conexion: QZ Tray exige que
  * estos manejadores existan antes de qz.websocket.connect().
  */
+// rejectOnFailure es indispensable: por defecto, si no se logra traer el certificado,
+// QZ Tray continua con un certificado en blanco -es decir, sin firma- y lo unico que deja
+// es un aviso en la consola. El sintoma seria "todo sigue igual que antes" sin ningun
+// error visible, que es justo lo dificil de diagnosticar.
 qz.security.setCertificatePromise(function(resolve, reject){
 	$.ajax({ url: 'assets/php/otros/qz-certificado.php', cache: false, dataType: 'text' })
 		.done(function(certificado){
@@ -184,13 +188,17 @@ qz.security.setCertificatePromise(function(resolve, reject){
 			// HTML de esa pantalla en vez del certificado. Se detecta para no dejar que
 			// falle mas adelante con un error incomprensible.
 			if(certificado.indexOf('BEGIN CERTIFICATE') === -1){
+				console.error('QZ Tray: la respuesta del certificado no es un certificado. Revisa qz-diagnostico.php');
 				reject('No se obtuvo el certificado de firma (la sesion pudo haber expirado).');
 				return;
 			}
 			resolve(certificado);
 		})
-		.fail(reject);
-});
+		.fail(function(xhr){
+			console.error('QZ Tray: fallo al pedir el certificado (HTTP ' + xhr.status + '). Revisa qz-diagnostico.php');
+			reject(xhr);
+		});
+}, { rejectOnFailure: true });
 
 // SHA512 es lo que espera QZ Tray desde la version 2.1; aqui se usa la 2.2.6.
 qz.security.setSignatureAlgorithm('SHA512');
@@ -199,7 +207,10 @@ qz.security.setSignaturePromise(function(porFirmar){
 	return function(resolve, reject){
 		$.ajax({ url: 'assets/php/otros/qz-firma.php', data: { request: porFirmar }, cache: false, dataType: 'text' })
 			.done(resolve)
-			.fail(reject);
+			.fail(function(xhr){
+				console.error('QZ Tray: fallo al firmar (HTTP ' + xhr.status + '). Revisa qz-diagnostico.php');
+				reject(xhr);
+			});
 	};
 });
 
