@@ -1,0 +1,8 @@
+[
+	{
+		"description": "Confia en el certificado de La Jugueria para imprimir sin pedir permiso",
+		"type": "ca",
+		"data": "lajugueria.crt",
+		"phase": "certgen"
+	}
+]

@@ -5,3 +5,11 @@ assets/php/otros/con.php
 
 # htaccess
 .htaccess
+
+# Instaladores de QZ Tray (~100MB cada uno): se compilan y se suben por FTP a descargas/,
+# no se versionan. La regla de deploy/ es solo por si alguien copia uno ahi por error;
+# el lugar correcto es descargas/.
+descargas/*.exe
+descargas/*.pkg
+deploy/qz-tray/*.exe
+deploy/qz-tray/*.pkg
