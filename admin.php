@@ -167,6 +167,42 @@ function fancy(ancho,alto,url){
 
 var QZ_TRAY_DOWNLOAD_URL = 'https://qz.io/download/';
 
+/**
+ * Firma de las peticiones a QZ Tray.
+ *
+ * Sin esto, QZ Tray deja deshabilitada la casilla "Remember this decision" y pide
+ * autorizacion en CADA impresion. Firmando, el cajero autoriza UNA sola vez por
+ * computadora y QZ Tray lo recuerda (lo guarda en %APPDATA%\qz\allowed.dat).
+ *
+ * Se registra al cargar la pantalla, antes de cualquier conexion: QZ Tray exige que
+ * estos manejadores existan antes de qz.websocket.connect().
+ */
+qz.security.setCertificatePromise(function(resolve, reject){
+	$.ajax({ url: 'assets/php/otros/qz-certificado.php', cache: false, dataType: 'text' })
+		.done(function(certificado){
+			// Si la sesion expiro, validarAcceso.php redirige al login y aqui llegaria el
+			// HTML de esa pantalla en vez del certificado. Se detecta para no dejar que
+			// falle mas adelante con un error incomprensible.
+			if(certificado.indexOf('BEGIN CERTIFICATE') === -1){
+				reject('No se obtuvo el certificado de firma (la sesion pudo haber expirado).');
+				return;
+			}
+			resolve(certificado);
+		})
+		.fail(reject);
+});
+
+// SHA512 es lo que espera QZ Tray desde la version 2.1; aqui se usa la 2.2.6.
+qz.security.setSignatureAlgorithm('SHA512');
+
+qz.security.setSignaturePromise(function(porFirmar){
+	return function(resolve, reject){
+		$.ajax({ url: 'assets/php/otros/qz-firma.php', data: { request: porFirmar }, cache: false, dataType: 'text' })
+			.done(resolve)
+			.fail(reject);
+	};
+});
+
 function imprimirTicket(printerName, datosBase64){
 	var yaAvisado = false;
 	var conexion = qz.websocket.isActive() ? Promise.resolve() : qz.websocket.connect();
