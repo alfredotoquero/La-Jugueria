@@ -108,7 +108,7 @@ class Usuarios
 
                     mysqli_query($this->con, $query);
 
-                    $respuesta = array("success" => true, "tipo" => "href", "idusuario" => $idusuario, "idsucursal" => $idsucursal);
+                    $respuesta = array("success" => true, "tipo" => "href", "idusuario" => $idusuario, "idsucursal" => $idsucursal, "slugsucursal" => $slugSucursal);
                 } else {
                     $query = "
                     select
@@ -125,7 +125,7 @@ class Usuarios
                     $validaCajero = mysqli_num_rows(mysqli_query($this->con, $query));
 
                     if ($validaCajero == 1) {
-                        $respuesta = array("success" => true, "tipo" => "href", "idusuario" => $idusuario, "idsucursal" => $idsucursal);
+                        $respuesta = array("success" => true, "tipo" => "href", "idusuario" => $idusuario, "idsucursal" => $idsucursal, "slugsucursal" => $slugSucursal);
                     } else {
                         $respuesta = array("success" => false, "message" => "Existe un corte iniciado por otro cajero.");
                     }
