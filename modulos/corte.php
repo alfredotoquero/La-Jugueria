@@ -36,7 +36,7 @@
 		$corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where idcorte = $idcorte"));
 		$infoticket = mysqli_fetch_assoc(mysqli_query($con, "select ticket_negocio as negocio, ticket_calle as calle, ticket_numero as numero, ticket_colonia as colonia, ticket_codigopostal as codigopostal, ticket_ciudad as ciudad, ticket_nombre as nombre, ticket_rfc as rfc, ticket_regimen as regimen, ticket_nombreimpresora as nombreimpresora from tsucursales where idsucursal = '$idsucursal'"));
 
-		$anchoTicket = 48;
+		$anchoTicket = ANCHO_TICKET;
 
 		$idticket = "";
 		for($i=strlen($idcorte);$i<7;$i++){
@@ -65,15 +65,15 @@
 		$escpos .= escposAlign("left");
 		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
 
-		$escpos .= escposFila(array(array("FONDO FINAL", 34, "left"), array('$'.number_format($corte['fondofinal'],2), 14, "right")));
+		$escpos .= escposFila(array(array("FONDO FINAL", 31, "left"), array('$'.number_format($corte['fondofinal'],2), 11, "right")));
 		$escpos .= escposLinea("DESGLOSE:");
-		$escpos .= escposFila(array(array("FONDO INICIAL (MXN)", 34, "left"), array('$'.number_format($corte['fondoinicial'],2), 14, "right")));
+		$escpos .= escposFila(array(array("FONDO INICIAL (MXN)", 31, "left"), array('$'.number_format($corte['fondoinicial'],2), 11, "right")));
 		if($corte['ventas']>0){
-			$escpos .= escposFila(array(array("EFECTIVO (MXN)", 34, "left"), array('$'.number_format($corte['ventas'],2), 14, "right")));
+			$escpos .= escposFila(array(array("EFECTIVO (MXN)", 31, "left"), array('$'.number_format($corte['ventas'],2), 11, "right")));
 		}
-		$escpos .= escposFila(array(array("TOTAL DE GASTOS", 34, "left"), array('$'.number_format($corte['gastos'],2), 14, "right")));
-		$escpos .= escposFila(array(array("FOLIO INICIAL DEL CORTE", 34, "left"), array($corte['folioinicial'], 14, "right")));
-		$escpos .= escposFila(array(array("FOLIO FINAL DEL CORTE", 34, "left"), array($corte['foliofinal'], 14, "right")));
+		$escpos .= escposFila(array(array("TOTAL DE GASTOS", 31, "left"), array('$'.number_format($corte['gastos'],2), 11, "right")));
+		$escpos .= escposFila(array(array("FOLIO INICIAL DEL CORTE", 31, "left"), array($corte['folioinicial'], 11, "right")));
+		$escpos .= escposFila(array(array("FOLIO FINAL DEL CORTE", 31, "left"), array($corte['foliofinal'], 11, "right")));
 
 		$descripcion = strtoupper(num2letras(number_format($corte['fondofinal'],2,'.','')));
 		$lineas = dividirTexto($descripcion,$anchoTicket);
@@ -89,6 +89,7 @@
 		$escpos .= escposAlign("center");
 		$escpos .= escposLinea("CORTE DE CAJA");
 		$escpos .= escposAbrirCajon();
+		$escpos .= escposCorte();
 
 		?>
 		<script>

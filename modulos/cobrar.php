@@ -20,7 +20,7 @@
 
 		$infoticket = mysqli_fetch_assoc(mysqli_query($con, "select ticket_negocio as negocio, ticket_calle as calle, ticket_numero as numero, ticket_colonia as colonia, ticket_codigopostal as codigopostal, ticket_ciudad as ciudad, ticket_nombre as nombre, ticket_rfc as rfc, ticket_regimen as regimen, ticket_nombreimpresora as nombreimpresora from tsucursales where idsucursal = '$idsucursal'"));
 
-		$anchoTicket = 48;
+		$anchoTicket = ANCHO_TICKET;
 
 		$idticket = "";
 		for($i=strlen($folio);$i<7;$i++){
@@ -44,11 +44,12 @@
 		$escpos .= escposAlign("left");
 		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
 
+		// 5 + 17 + 9 + 11 = ANCHO_TICKET
 		$escpos .= escposFila(array(
-			array("CANT.", 5, "left"),
-			array("PRODUCTO", 19, "left"),
-			array("PRECIO", 10, "right"),
-			array("IMPORTE", 14, "right")
+			array("CANT", 5, "left"),
+			array("PRODUCTO", 17, "left"),
+			array("PRECIO", 9, "right"),
+			array("IMPORTE", 11, "right")
 		));
 
 		$articulos = 0;
@@ -61,22 +62,22 @@
 			$nombre = mysqli_fetch_row(mysqli_query($con, "select nombre from tproductos where idproducto = '".$producto["idproducto"]."'"))[0];
 			$precio = "$".number_format($producto["precio"],2);
 			$importe = "$".number_format($producto["precio"]*$producto["cantidad"],2);
-			$lineas = dividirTexto($nombre,19);
+			$lineas = dividirTexto($nombre,17);
 			foreach($lineas as $linea){
 				$escpos .= escposFila(array(
 					array($numLinea==1 ? $cantidad : "", 5, "left"),
-					array($linea, 19, "left"),
-					array($numLinea==1 ? $precio : "", 10, "right"),
-					array($numLinea==1 ? $importe : "", 14, "right")
+					array($linea, 17, "left"),
+					array($numLinea==1 ? $precio : "", 9, "right"),
+					array($numLinea==1 ? $importe : "", 11, "right")
 				));
 				$numLinea++;
 			}
 		}
 
 		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
-		$escpos .= escposFila(array(array("TOTAL", 34, "left"), array("$".number_format($total,2), 14, "right")));
-		$escpos .= escposFila(array(array("EFECTIVO", 34, "left"), array("$".number_format($efectivo,2), 14, "right")));
-		$escpos .= escposFila(array(array("CAMBIO", 34, "left"), array("$".number_format($efectivo-$total,2), 14, "right")));
+		$escpos .= escposFila(array(array("TOTAL", 31, "left"), array("$".number_format($total,2), 11, "right")));
+		$escpos .= escposFila(array(array("EFECTIVO", 31, "left"), array("$".number_format($efectivo,2), 11, "right")));
+		$escpos .= escposFila(array(array("CAMBIO", 31, "left"), array("$".number_format($efectivo-$total,2), 11, "right")));
 
 		$descripcion = strtoupper(num2letras(number_format($total,2,'.','')));
 		$lineas = dividirTexto($descripcion,$anchoTicket);
@@ -90,6 +91,7 @@
 		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
 		$escpos .= escposLinea("GRACIAS POR SU COMPRA");
 		$escpos .= escposAbrirCajon();
+		$escpos .= escposCorte();
 
 		mysqli_query($con, "insert into trcuentaproductos (idcuenta,idproducto,cantidad,precio) select $idcuenta,idproducto,cantidad,precio from trcuentaproductostmp where idsucursal = '$idsucursal'");
 		mysqli_query($con, "delete from trcuentaproductostmp where idsucursal = '$idsucursal'");
