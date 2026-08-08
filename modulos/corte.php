@@ -19,7 +19,17 @@
 		$folioinicial = mysqli_fetch_row(mysqli_query($con, "select min(folio) from tcuentas where idcorte = $idcorte"))[0];
 		$foliofinal = mysqli_fetch_row(mysqli_query($con, "select max(folio) from tcuentas where idcorte = $idcorte"))[0];
 
+		// El folio del corte se consume hasta el cierre, no en la apertura: asi
+		// un corte abandonado no quema folio. Mismo patron atomico que usa
+		// cobrar.php para el folio de la venta.
+		$foliocorte = mysqli_fetch_row(mysqli_query($con, "select folio from tcortes where idcorte = $idcorte"))[0];
+		if($foliocorte<=0){
+			mysqli_query($con, "update tfolios set ultimofolio_corte = LAST_INSERT_ID(ultimofolio_corte + 1) where idsucursal = '$idsucursal'");
+			$foliocorte = mysqli_insert_id($con);
+		}
+
 		mysqli_query($con, "update tcortes set
+					folio = '$foliocorte',
 					fechafinal = '".date("Y-m-d")."',
 					horafinal = '".date("H:i:s")."',
 					gastos = '$retiros',
@@ -39,10 +49,10 @@
 		$anchoTicket = ANCHO_TICKET;
 
 		$idticket = "";
-		for($i=strlen($idcorte);$i<7;$i++){
+		for($i=strlen($corte["folio"]);$i<7;$i++){
 			$idticket .= "0";
 		}
-		$idticket = $idticket.$idcorte;
+		$idticket = $idticket.$corte["folio"];
 		$ticket = date("d/m/Y",strtotime($corte["fechafinal"]))." ".date("H:i:s A",strtotime($corte["horafinal"]))." ".$idticket;
 
 		$escpos = escposInit();
