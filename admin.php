@@ -165,7 +165,9 @@ function fancy(ancho,alto,url){
 	});
 }
 
-var QZ_TRAY_DOWNLOAD_URL = 'https://qz.io/download/';
+// Apunta a la pagina propia, NO a qz.io: el instalador oficial no trae el certificado de
+// La Jugueria y con el volveria a salir el dialogo de permiso en cada impresion.
+var QZ_TRAY_DOWNLOAD_URL = 'instalar-qz.php';
 
 /**
  * Firma de las peticiones a QZ Tray.
@@ -188,14 +190,14 @@ qz.security.setCertificatePromise(function(resolve, reject){
 			// HTML de esa pantalla en vez del certificado. Se detecta para no dejar que
 			// falle mas adelante con un error incomprensible.
 			if(certificado.indexOf('BEGIN CERTIFICATE') === -1){
-				console.error('QZ Tray: la respuesta del certificado no es un certificado. Revisa qz-diagnostico.php');
+				console.error('QZ Tray: la respuesta del certificado no es un certificado');
 				reject('No se obtuvo el certificado de firma (la sesion pudo haber expirado).');
 				return;
 			}
 			resolve(certificado);
 		})
 		.fail(function(xhr){
-			console.error('QZ Tray: fallo al pedir el certificado (HTTP ' + xhr.status + '). Revisa qz-diagnostico.php');
+			console.error('QZ Tray: fallo al pedir el certificado (HTTP ' + xhr.status + ')');
 			reject(xhr);
 		});
 }, { rejectOnFailure: true });
@@ -208,7 +210,7 @@ qz.security.setSignaturePromise(function(porFirmar){
 		$.ajax({ url: 'assets/php/otros/qz-firma.php', data: { request: porFirmar }, cache: false, dataType: 'text' })
 			.done(resolve)
 			.fail(function(xhr){
-				console.error('QZ Tray: fallo al firmar (HTTP ' + xhr.status + '). Revisa qz-diagnostico.php');
+				console.error('QZ Tray: fallo al firmar (HTTP ' + xhr.status + ')');
 				reject(xhr);
 			});
 	};
