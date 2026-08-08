@@ -6,6 +6,17 @@
  * impresora térmica física de la sucursal.
  */
 
+/**
+ * Columnas de texto que caben en una linea de la impresora termica en Font A.
+ * Las impresoras de 80mm de la sucursal imprimen 42 caracteres por linea
+ * (no 48, que fue lo que se asumio al migrar a QZ Tray y hacia que cada
+ * separador y cada fila se cortaran arrastrando 6 caracteres al renglon
+ * siguiente). Todas las tablas del ticket deben sumar este ancho.
+ */
+if(!defined("ANCHO_TICKET")){
+	define("ANCHO_TICKET", 42);
+}
+
 function escposInit(){
 	return chr(27).chr(64); // ESC @ - inicializa la impresora
 }
@@ -44,6 +55,21 @@ function escposFila($columnas){
 			: str_pad($texto, $ancho, " ", STR_PAD_RIGHT);
 	}
 	return rtrim($linea)."\n";
+}
+
+/**
+ * Cierra el ticket: avanza el papel y lo corta.
+ *
+ * Es indispensable emitirlo. Con la extension printer_* esto lo hacia solo el
+ * driver GDI de Windows al cerrar el documento (printer_end_doc); mandando
+ * bytes crudos por QZ Tray el driver ya no interviene, y sin esto las ultimas
+ * lineas se quedan dentro de la impresora (hay que darle FEED a mano).
+ *
+ * El avance previo existe porque el cabezal termico esta ~2cm antes de la
+ * cuchilla: lo ya impreso en ese tramo debe salir antes de cortar.
+ */
+function escposCorte($lineas = 4){
+	return str_repeat("\n", $lineas).chr(29).chr(86).chr(66).chr(0); // GS V B n - corte parcial
 }
 
 function escposAbrirCajon(){

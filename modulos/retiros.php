@@ -15,7 +15,7 @@ if($_POST['enviar']==1){
 
 	$infoticket = mysqli_fetch_assoc(mysqli_query($con, "select ticket_negocio as negocio, ticket_calle as calle, ticket_numero as numero, ticket_colonia as colonia, ticket_codigopostal as codigopostal, ticket_ciudad as ciudad, ticket_nombre as nombre, ticket_rfc as rfc, ticket_regimen as regimen, ticket_nombreimpresora as nombreimpresora from tsucursales where idsucursal = '$idsucursal'"));
 
-			$anchoTicket = 32;
+			$anchoTicket = ANCHO_TICKET;
 
 			$idticket = "";
 			for($i=strlen($idretiro);$i<7;$i++){
@@ -44,7 +44,7 @@ if($_POST['enviar']==1){
 			$escpos .= escposAlign("left");
 			$escpos .= escposLinea(str_repeat("=", $anchoTicket));
 
-			$escpos .= escposFila(array(array("RETIRO DE EFECTIVO:", 20, "left"), array("$".number_format($monto,2), 12, "right")));
+			$escpos .= escposFila(array(array("RETIRO DE EFECTIVO:", 31, "left"), array("$".number_format($monto,2), 11, "right")));
 			$escpos .= escposLinea("DESCRIPCION:");
 			$lineas = dividirTexto($descripcion,$anchoTicket);
 			foreach($lineas as $linea){
@@ -61,6 +61,7 @@ if($_POST['enviar']==1){
 			$escpos .= escposAlign("center");
 			$escpos .= escposLinea("RETIRO DE EFECTIVO");
 			$escpos .= escposAbrirCajon();
+			$escpos .= escposCorte();
 
 			?>
 			<script>
