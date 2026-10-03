@@ -25,6 +25,9 @@ $corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where idsu
 <script>
 var total = 0;
 var productos = 0;
+// Productos que se estan guardando en el carrito (AJAX en curso). Cobrar espera a
+// que terminen: si no, la pantalla de cobro calcula el total sin el ultimo producto.
+var productosGuardando = 0;
 
 $(document).ready(function(){
 	$(document).keydown(manejarEventos);
@@ -60,6 +63,8 @@ $(document).ready(function(){
 				type:"POST",
 				url:"modulos/agregarProducto.php",
 				data:"idproducto=" + producto[0] + "&precio=" + producto[1],
+				beforeSend: function(){ productosGuardando++; },
+				complete: function(){ productosGuardando--; },
 				success: function(data){
 					recargarCuenta();
 				}
@@ -93,6 +98,10 @@ function manejarEventos(evento){
 }
 
 function cobrar(){
+	if(productosGuardando>0){
+		setTimeout(cobrar, 100);
+		return;
+	}
 	if(total>0){
 		fancy(300,238,'modulos/cobrar.php');
 	}else{
@@ -117,6 +126,8 @@ function agregarProducto(idproducto){
 		type: "POST",  
 		url: "modulos/menu/agregarProducto.php",
 		data: "idproducto=" + idproducto,
+		beforeSend: function(){ productosGuardando++; },
+		complete: function(){ productosGuardando--; },
 		success: function(data){
 			recargarCuenta();
 		}  
