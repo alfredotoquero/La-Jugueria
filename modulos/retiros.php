@@ -13,9 +13,9 @@ if($_POST['enviar']==1){
 	$idretiro = mysqli_insert_id($con);
 	include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/escpos.php");
 
-	$infoticket = mysqli_fetch_assoc(mysqli_query($con, "select ticket_negocio as negocio, ticket_calle as calle, ticket_numero as numero, ticket_colonia as colonia, ticket_codigopostal as codigopostal, ticket_ciudad as ciudad, ticket_nombre as nombre, ticket_rfc as rfc, ticket_regimen as regimen, ticket_nombreimpresora as nombreimpresora from tsucursales where idsucursal = '$idsucursal'"));
+	$infoticket = infoTicketSucursal($con, $idsucursal);
 
-			$anchoTicket = ANCHO_TICKET;
+			$anchoTicket = anchoTicket($infoticket["tamanoimpresion"]);
 
 			$idticket = "";
 			for($i=strlen($idretiro);$i<7;$i++){
@@ -25,39 +25,24 @@ if($_POST['enviar']==1){
 			$ticket = date("d/m/Y")." ".date("H:i:s a")." ".$idticket;
 
 			$escpos = escposInit();
-			$escpos .= escposAlign("center");
-			$escpos .= escposBold(true).escposTamano(true);
-			$escpos .= escposLinea($infoticket["negocio"]);
-			$escpos .= escposTamano(false).escposBold(false);
-			$escpos .= escposLinea($infoticket["calle"]." No. ".$infoticket["numero"]);
-			$escpos .= escposLinea($infoticket["colonia"]." C.P. ".$infoticket["codigopostal"]);
-			$escpos .= escposLinea($infoticket["ciudad"]);
-			$escpos .= escposLinea($infoticket["nombre"]);
-			$escpos .= escposLinea($infoticket["rfc"]);
-			$escpos .= escposLinea($infoticket["regimen"]);
-			$escpos .= escposLinea($ticket);
-			$escpos .= escposAlign("left");
-			$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+			$escpos .= escposEncabezado($infoticket, $ticket, $anchoTicket);
 
 			$escpos .= escposAlign("center");
 			$escpos .= escposLinea("RETIRO DE EFECTIVO");
 			$escpos .= escposAlign("left");
-			$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+			$escpos .= escposSeparador($anchoTicket);
 
-			$escpos .= escposFila(array(array("RETIRO DE EFECTIVO:", 31, "left"), array("$".number_format($monto,2), 11, "right")));
+			$escpos .= escposFilaMonto("RETIRO DE EFECTIVO:", "$".number_format($monto,2), $anchoTicket);
 			$escpos .= escposLinea("DESCRIPCION:");
-			$lineas = dividirTexto($descripcion,$anchoTicket);
-			foreach($lineas as $linea){
-				$escpos .= escposLinea($linea);
-			}
+			$escpos .= escposParrafo($descripcion, $anchoTicket);
 			$escpos .= escposLinea("FECHA Y HORA:");
 			$escpos .= escposLinea($fecha." A LAS ".$hora);
 
-			$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+			$escpos .= escposSeparador($anchoTicket);
 			$escpos .= escposAlign("center");
 			$escpos .= escposLinea("FIRMAS");
 			$escpos .= escposAlign("left");
-			$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+			$escpos .= escposSeparador($anchoTicket);
 			$escpos .= escposAlign("center");
 			$escpos .= escposLinea("RETIRO DE EFECTIVO");
 			$escpos .= escposAbrirCajon();

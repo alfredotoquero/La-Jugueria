@@ -44,9 +44,9 @@
 		include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/escpos.php");
 
 		$corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where idcorte = $idcorte"));
-		$infoticket = mysqli_fetch_assoc(mysqli_query($con, "select ticket_negocio as negocio, ticket_calle as calle, ticket_numero as numero, ticket_colonia as colonia, ticket_codigopostal as codigopostal, ticket_ciudad as ciudad, ticket_nombre as nombre, ticket_rfc as rfc, ticket_regimen as regimen, ticket_nombreimpresora as nombreimpresora from tsucursales where idsucursal = '$idsucursal'"));
+		$infoticket = infoTicketSucursal($con, $idsucursal);
 
-		$anchoTicket = ANCHO_TICKET;
+		$anchoTicket = anchoTicket($infoticket["tamanoimpresion"]);
 
 		$idticket = "";
 		for($i=strlen($corte["folio"]);$i<7;$i++){
@@ -56,46 +56,31 @@
 		$ticket = date("d/m/Y",strtotime($corte["fechafinal"]))." ".date("H:i:s A",strtotime($corte["horafinal"]))." ".$idticket;
 
 		$escpos = escposInit();
-		$escpos .= escposAlign("center");
-		$escpos .= escposBold(true).escposTamano(true);
-		$escpos .= escposLinea($infoticket["negocio"]);
-		$escpos .= escposTamano(false).escposBold(false);
-		$escpos .= escposLinea($infoticket["calle"]." No. ".$infoticket["numero"]);
-		$escpos .= escposLinea($infoticket["colonia"]." C.P. ".$infoticket["codigopostal"]);
-		$escpos .= escposLinea($infoticket["ciudad"]);
-		$escpos .= escposLinea($infoticket["nombre"]);
-		$escpos .= escposLinea($infoticket["rfc"]);
-		$escpos .= escposLinea($infoticket["regimen"]);
-		$escpos .= escposLinea($ticket);
-		$escpos .= escposAlign("left");
-		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+		$escpos .= escposEncabezado($infoticket, $ticket, $anchoTicket);
 
 		$escpos .= escposAlign("center");
 		$escpos .= escposLinea("CORTE DE CAJA");
 		$escpos .= escposAlign("left");
-		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+		$escpos .= escposSeparador($anchoTicket);
 
-		$escpos .= escposFila(array(array("FONDO FINAL", 31, "left"), array('$'.number_format($corte['fondofinal'],2), 11, "right")));
+		$escpos .= escposFilaMonto("FONDO FINAL", '$'.number_format($corte['fondofinal'],2), $anchoTicket);
 		$escpos .= escposLinea("DESGLOSE:");
-		$escpos .= escposFila(array(array("FONDO INICIAL (MXN)", 31, "left"), array('$'.number_format($corte['fondoinicial'],2), 11, "right")));
+		$escpos .= escposFilaMonto("FONDO INICIAL (MXN)", '$'.number_format($corte['fondoinicial'],2), $anchoTicket);
 		if($corte['ventas']>0){
-			$escpos .= escposFila(array(array("EFECTIVO (MXN)", 31, "left"), array('$'.number_format($corte['ventas'],2), 11, "right")));
+			$escpos .= escposFilaMonto("EFECTIVO (MXN)", '$'.number_format($corte['ventas'],2), $anchoTicket);
 		}
-		$escpos .= escposFila(array(array("TOTAL DE GASTOS", 31, "left"), array('$'.number_format($corte['gastos'],2), 11, "right")));
-		$escpos .= escposFila(array(array("FOLIO INICIAL DEL CORTE", 31, "left"), array($corte['folioinicial'], 11, "right")));
-		$escpos .= escposFila(array(array("FOLIO FINAL DEL CORTE", 31, "left"), array($corte['foliofinal'], 11, "right")));
+		$escpos .= escposFilaMonto("TOTAL DE GASTOS", '$'.number_format($corte['gastos'],2), $anchoTicket);
+		$escpos .= escposFilaMonto("FOLIO INICIAL DEL CORTE", $corte['folioinicial'], $anchoTicket);
+		$escpos .= escposFilaMonto("FOLIO FINAL DEL CORTE", $corte['foliofinal'], $anchoTicket);
 
 		$descripcion = strtoupper(num2letras(number_format($corte['fondofinal'],2,'.','')));
-		$lineas = dividirTexto($descripcion,$anchoTicket);
-		foreach($lineas as $linea){
-			$escpos .= escposLinea($linea);
-		}
+		$escpos .= escposParrafo($descripcion, $anchoTicket);
 
-		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+		$escpos .= escposSeparador($anchoTicket);
 		$escpos .= escposAlign("center");
 		$escpos .= escposLinea("FIRMAS");
 		$escpos .= escposAlign("left");
-		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+		$escpos .= escposSeparador($anchoTicket);
 		$escpos .= escposAlign("center");
 		$escpos .= escposLinea("CORTE DE CAJA");
 		$escpos .= escposAbrirCajon();
