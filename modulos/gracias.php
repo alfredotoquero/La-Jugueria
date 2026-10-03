@@ -6,8 +6,12 @@ if($_GET["imprimir"]==1){
 
 	$corte = mysqli_fetch_assoc(mysqli_query($con, "select * from tcortes where status = 0 and idsucursal = '" . $_SESSION["idsucx9284hqmzt7"] . "' order by idcorte desc limit 1"));
 
-	$idcuenta = $_GET["idcuenta"];
-	$cuenta = mysqli_fetch_assoc(mysqli_query($con, "select * from tcuentas where idcuenta = '$idcuenta'"));
+	$idcuenta = (int) $_GET["idcuenta"];
+	// Solo se reimprimen cuentas de la sucursal en sesion.
+	$cuenta = mysqli_fetch_assoc(mysqli_query($con, "select * from tcuentas where idcuenta = '$idcuenta' and idsucursal = '" . (int) $_SESSION["idsucx9284hqmzt7"] . "'"));
+	if(!$cuenta){
+		exit;
+	}
 	$idsucursal = $cuenta["idsucursal"];
 	$total = $cuenta["total"];
 	$efectivo = (float)$cuenta["total"] + (float)$cuenta["cambio"];
