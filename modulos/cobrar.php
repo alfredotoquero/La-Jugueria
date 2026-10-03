@@ -18,9 +18,9 @@
 
 		include($_SERVER["DOCUMENT_ROOT"] . "/assets/php/otros/escpos.php");
 
-		$infoticket = mysqli_fetch_assoc(mysqli_query($con, "select ticket_negocio as negocio, ticket_calle as calle, ticket_numero as numero, ticket_colonia as colonia, ticket_codigopostal as codigopostal, ticket_ciudad as ciudad, ticket_nombre as nombre, ticket_rfc as rfc, ticket_regimen as regimen, ticket_nombreimpresora as nombreimpresora from tsucursales where idsucursal = '$idsucursal'"));
+		$infoticket = infoTicketSucursal($con, $idsucursal);
 
-		$anchoTicket = ANCHO_TICKET;
+		$anchoTicket = anchoTicket($infoticket["tamanoimpresion"]);
 
 		$idticket = "";
 		for($i=strlen($folio);$i<7;$i++){
@@ -30,65 +30,33 @@
 		$ticket = date("d/m/Y")." ".date("H:i:s a")." ".$idticket;
 
 		$escpos = escposInit();
-		$escpos .= escposAlign("center");
-		$escpos .= escposBold(true).escposTamano(true);
-		$escpos .= escposLinea($infoticket["negocio"]);
-		$escpos .= escposTamano(false).escposBold(false);
-		$escpos .= escposLinea($infoticket["calle"]." No. ".$infoticket["numero"]);
-		$escpos .= escposLinea($infoticket["colonia"]." C.P. ".$infoticket["codigopostal"]);
-		$escpos .= escposLinea($infoticket["ciudad"]);
-		$escpos .= escposLinea($infoticket["nombre"]);
-		$escpos .= escposLinea($infoticket["rfc"]);
-		$escpos .= escposLinea($infoticket["regimen"]);
-		$escpos .= escposLinea($ticket);
-		$escpos .= escposAlign("left");
-		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+		$escpos .= escposEncabezado($infoticket, $ticket, $anchoTicket);
 
-		// 5 + 17 + 9 + 11 = ANCHO_TICKET
-		$escpos .= escposFila(array(
-			array("CANT", 5, "left"),
-			array("PRODUCTO", 17, "left"),
-			array("PRECIO", 9, "right"),
-			array("IMPORTE", 11, "right")
-		));
+		$escpos .= escposEncabezadoProductos($anchoTicket);
 
 		$articulos = 0;
 		$productos = mysqli_query($con, "select * from trcuentaproductostmp where idsucursal = '$idsucursal' order by idtmp");
 		while($producto = mysqli_fetch_assoc($productos)){
 			mysqli_query($con, "update tproductosucursales tps join tproductos tp on tp.idproducto = tps.idproducto set tps.unidades = tps.unidades - ".$producto["cantidad"]." where tps.idproducto = '".$producto["idproducto"]."' and tps.idsucursal = '$idsucursal' and tp.servicio = 0");
 			$articulos += $producto["cantidad"];
-			$numLinea = 1;
-			$cantidad = $producto["cantidad"];
 			$nombre = mysqli_fetch_row(mysqli_query($con, "select nombre from tproductos where idproducto = '".$producto["idproducto"]."'"))[0];
 			$precio = "$".number_format($producto["precio"],2);
 			$importe = "$".number_format($producto["precio"]*$producto["cantidad"],2);
-			$lineas = dividirTexto($nombre,17);
-			foreach($lineas as $linea){
-				$escpos .= escposFila(array(
-					array($numLinea==1 ? $cantidad : "", 5, "left"),
-					array($linea, 17, "left"),
-					array($numLinea==1 ? $precio : "", 9, "right"),
-					array($numLinea==1 ? $importe : "", 11, "right")
-				));
-				$numLinea++;
-			}
+			$escpos .= escposFilaProducto($producto["cantidad"], $nombre, $precio, $importe, $anchoTicket);
 		}
 
-		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
-		$escpos .= escposFila(array(array("TOTAL", 31, "left"), array("$".number_format($total,2), 11, "right")));
-		$escpos .= escposFila(array(array("EFECTIVO", 31, "left"), array("$".number_format($efectivo,2), 11, "right")));
-		$escpos .= escposFila(array(array("CAMBIO", 31, "left"), array("$".number_format($efectivo-$total,2), 11, "right")));
+		$escpos .= escposSeparador($anchoTicket);
+		$escpos .= escposFilaMonto("TOTAL", "$".number_format($total,2), $anchoTicket);
+		$escpos .= escposFilaMonto("EFECTIVO", "$".number_format($efectivo,2), $anchoTicket);
+		$escpos .= escposFilaMonto("CAMBIO", "$".number_format($efectivo-$total,2), $anchoTicket);
 
 		$descripcion = strtoupper(num2letras(number_format($total,2,'.','')));
-		$lineas = dividirTexto($descripcion,$anchoTicket);
-		foreach($lineas as $linea){
-			$escpos .= escposLinea($linea);
-		}
+		$escpos .= escposParrafo($descripcion, $anchoTicket);
 
-		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+		$escpos .= escposSeparador($anchoTicket);
 		$escpos .= escposAlign("center");
 		$escpos .= escposLinea("ARTICULOS: ".$articulos);
-		$escpos .= escposLinea(str_repeat("=", $anchoTicket));
+		$escpos .= escposSeparador($anchoTicket);
 		$escpos .= escposLinea("GRACIAS POR SU COMPRA");
 		$escpos .= escposAbrirCajon();
 		$escpos .= escposCorte();

@@ -7,14 +7,29 @@
  */
 
 /**
- * Columnas de texto que caben en una linea de la impresora termica en Font A.
- * Las impresoras de 80mm de la sucursal imprimen 42 caracteres por linea
- * (no 48, que fue lo que se asumio al migrar a QZ Tray y hacia que cada
- * separador y cada fila se cortaran arrastrando 6 caracteres al renglon
- * siguiente). Todas las tablas del ticket deben sumar este ancho.
+ * Columnas de texto que caben en una linea de la impresora termica en Font A,
+ * segun el tamano de impresion configurado en la sucursal
+ * (tsucursales.ticket_tamanoimpresion):
+ * - 72 mm (rollo de 80 mm): 42 caracteres. Es lo que imprime la Bixolon
+ *   SRP-330II (no 48, que fue lo que se asumio al migrar a QZ Tray y hacia
+ *   que cada separador y cada fila arrastraran 6 caracteres al renglon
+ *   siguiente).
+ * - 58 mm: 32 caracteres (cabezal de 384 puntos, el estandar en ese rollo).
+ * Todas las tablas del ticket se arman a partir de este ancho; si se cambia de
+ * modelo de impresora, este es el unico lugar a tocar.
  */
-if(!defined("ANCHO_TICKET")){
-	define("ANCHO_TICKET", 42);
+function anchoTicket($tamanoImpresion){
+	$columnas = array(72 => 42, 58 => 32);
+	$tamanoImpresion = (int) $tamanoImpresion;
+	return isset($columnas[$tamanoImpresion]) ? $columnas[$tamanoImpresion] : $columnas[72];
+}
+
+/**
+ * Datos de la sucursal que se imprimen en el encabezado de todos los tickets,
+ * mas la impresora y el tamano de impresion con los que se manda a imprimir.
+ */
+function infoTicketSucursal($con, $idsucursal){
+	return mysqli_fetch_assoc(mysqli_query($con, "select ticket_negocio as negocio, ticket_calle as calle, ticket_numero as numero, ticket_colonia as colonia, ticket_codigopostal as codigopostal, ticket_ciudad as ciudad, ticket_nombre as nombre, ticket_rfc as rfc, ticket_regimen as regimen, ticket_nombreimpresora as nombreimpresora, ticket_tamanoimpresion as tamanoimpresion from tsucursales where idsucursal = '".(int) $idsucursal."'"));
 }
 
 function escposInit(){
@@ -58,6 +73,127 @@ function escposFila($columnas){
 }
 
 /**
+ * Texto libre partido por palabra completa para que ninguna palabra quede
+ * cortada al final del renglon. Respeta la alineacion activa.
+ */
+function escposParrafo($texto, $ancho){
+	$escpos = "";
+	foreach(dividirTexto($texto, $ancho) as $linea){
+		$escpos .= escposLinea($linea);
+	}
+	return $escpos;
+}
+
+function escposSeparador($ancho){
+	return escposLinea(str_repeat("=", $ancho));
+}
+
+/**
+ * Fila "ETIQUETA ........ $123.45": el valor ocupa siempre las ultimas 11
+ * columnas. Si la etiqueta no cabe en el espacio restante (pasa en 58 mm con
+ * textos como "FOLIO INICIAL DEL CORTE") se parte en varios renglones y el
+ * valor queda en el ultimo.
+ */
+function escposFilaMonto($etiqueta, $valor, $ancho){
+	$anchoValor = 11;
+	$lineas = dividirTexto($etiqueta, $ancho - $anchoValor);
+	$ultima = array_pop($lineas);
+	$escpos = "";
+	foreach($lineas as $linea){
+		$escpos .= escposLinea($linea);
+	}
+	return $escpos.escposFila(array(array($ultima, $ancho - $anchoValor, "left"), array($valor, $anchoValor, "right")));
+}
+
+/**
+ * Encabezado comun de todos los tickets: datos fiscales de la sucursal,
+ * fecha/hora/folio y el primer separador.
+ */
+function escposEncabezado($infoticket, $lineaTicket, $ancho){
+	$escpos = escposAlign("center");
+	$escpos .= escposBold(true).escposTamano(true);
+	// En doble ancho cada caracter ocupa dos columnas.
+	$escpos .= escposParrafo($infoticket["negocio"], (int) floor($ancho / 2));
+	$escpos .= escposTamano(false).escposBold(false);
+	$escpos .= escposParrafo($infoticket["calle"]." No. ".$infoticket["numero"], $ancho);
+	$escpos .= escposParrafo($infoticket["colonia"]." C.P. ".$infoticket["codigopostal"], $ancho);
+	$escpos .= escposParrafo($infoticket["ciudad"], $ancho);
+	$escpos .= escposParrafo($infoticket["nombre"], $ancho);
+	$escpos .= escposParrafo($infoticket["rfc"], $ancho);
+	$escpos .= escposParrafo($infoticket["regimen"], $ancho);
+	$escpos .= escposParrafo($lineaTicket, $ancho);
+	$escpos .= escposAlign("left");
+	$escpos .= escposSeparador($ancho);
+	return $escpos;
+}
+
+/**
+ * Anchos de las columnas CANT | PRODUCTO | PRECIO | IMPORTE de la tabla de
+ * productos vendidos (venta y reimpresion). Ambos tamanos usan la misma
+ * distribucion; en 58 mm solo se angostan las columnas. Siempre suman el
+ * ancho del ticket.
+ */
+function columnasProductos($ancho){
+	// 58 mm: 5 + 11 + 8 + 8 = 32. PRECIO e IMPORTE caben hasta $999.99; un
+	// importe mayor lo resuelve escposFilaProducto.
+	if($ancho == 32){
+		return array(5, 11, 8, 8);
+	}
+	// 72 mm: 5 + 17 + 9 + 11 = 42
+	return array(5, $ancho - 25, 9, 11);
+}
+
+function escposEncabezadoProductos($ancho){
+	list($cant, $producto, $precio, $importe) = columnasProductos($ancho);
+	return escposFila(array(
+		array("CANT", $cant, "left"),
+		array("PRODUCTO", $producto, "left"),
+		array("PRECIO", $precio, "right"),
+		array("IMPORTE", $importe, "right")
+	));
+}
+
+/**
+ * Un renglon de la tabla de productos. Si el nombre no cabe en su columna se
+ * parte en varios renglones dentro de esa misma columna; cantidad, precio e
+ * importe van solo en el primero.
+ *
+ * Si el precio o el importe no caben en su columna (en 58 mm, $1,000.00 o
+ * mas), en vez de desacomodar el renglon se imprimen en un renglon extra
+ * debajo del nombre, alineados a la derecha.
+ */
+function escposFilaProducto($cantidad, $nombre, $precio, $importe, $ancho){
+	list($anchoCant, $anchoProducto, $anchoPrecio, $anchoImporte) = columnasProductos($ancho);
+	$escpos = "";
+	if(strlen($precio) > $anchoPrecio || strlen($importe) > $anchoImporte){
+		$numLinea = 1;
+		foreach(dividirTexto($nombre, $anchoProducto) as $linea){
+			$escpos .= escposFila(array(
+				array($numLinea==1 ? $cantidad : "", $anchoCant, "left"),
+				array($linea, $anchoProducto, "left")
+			));
+			$numLinea++;
+		}
+		return $escpos.escposFila(array(
+			array("", $anchoCant, "left"),
+			array($precio, $ancho - $anchoCant - 11, "right"),
+			array($importe, 11, "right")
+		));
+	}
+	$numLinea = 1;
+	foreach(dividirTexto($nombre, $anchoProducto) as $linea){
+		$escpos .= escposFila(array(
+			array($numLinea==1 ? $cantidad : "", $anchoCant, "left"),
+			array($linea, $anchoProducto, "left"),
+			array($numLinea==1 ? $precio : "", $anchoPrecio, "right"),
+			array($numLinea==1 ? $importe : "", $anchoImporte, "right")
+		));
+		$numLinea++;
+	}
+	return $escpos;
+}
+
+/**
  * Cierra el ticket: avanza el papel y lo corta.
  *
  * Es indispensable emitirlo. Con la extension printer_* esto lo hacia solo el
@@ -79,10 +215,17 @@ function escposAbrirCajon(){
 
 /**
  * Parte un texto largo en varias líneas de máximo $length caracteres,
- * cortando por palabra completa (para nombres de producto largos).
+ * cortando por palabra completa (para nombres de producto largos). Una palabra
+ * que por si sola no cabe en el renglon se corta en pedazos, para que nunca se
+ * desborde la columna y desacomode el resto de la fila.
  */
 function dividirTexto($cadena, $length){
-	$palabras = explode(" ", $cadena);
+	$palabras = array();
+	foreach(explode(" ", trim((string) $cadena)) as $palabra){
+		foreach(str_split($palabra, max(1, $length)) as $pedazo){
+			$palabras[] = $pedazo;
+		}
+	}
 	$texto = "";
 	$lineas = array();
 	foreach($palabras as $palabra){
